@@ -1,0 +1,2 @@
+1) Wydzielic modol baterii
+2) Mozliwosc wysylania duzej ilosci danych, w naglowko bedzie ktora to ramka z ilu wyslanych

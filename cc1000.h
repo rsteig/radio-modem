@@ -4,7 +4,8 @@
  * Howto:
  * - set up correct IO interface to microcontroller
  * - fill InterruptTransmit() and InterruptReceive() depending on processor
- * - fill cc1000_Wait() to delay correct time (min 1us)
+ * - fill cc1000_Wait() to delay correct time (1us resolution)
+ * - fill macros handling IO interface
  * - put cc1000_Interrupt() to IRQ handler from DCLK
  * - call cc1000_Init() and set up mode: cc1000_SetToTransmit() or cc1000_SetToReceive()
  * - enjoy :)
@@ -14,6 +15,8 @@
  */
 
 /*
+ * TODO: move battery to separated module
+ * TODO: add LED support in right places
  * TODO: frame based on struct
  * TODO: add posibility to select rf channel
  * TODO: fixed frame size
@@ -40,22 +43,6 @@
 
 #define CC1000_MAX_FRAME_SIZE   (CC1000_START_SIZE + CC1000_HEADER_SIZE + CC1000_DATA_SIZE)
 
-//processor IO interface definitions
-#define CC1000_DIO_PIN     GPIO_Pin_1   //pin of DIO
-#define CC1000_DIO_PORT    GPIOB        //port of DIO
-
-#define CC1000_DCLK_PIN    GPIO_Pin_0   //pin of DCLK
-#define CC1000_DCLK_PORT   GPIOB        //port of DCLK
-
-#define CC1000_PDATA_PIN   GPIO_Pin_6   //pin of PDATA
-#define CC1000_PDATA_PORT  GPIOB        //port of PDATA
-
-#define CC1000_PALE_PIN    GPIO_Pin_7   //pin of PALE
-#define CC1000_PALE_PORT   GPIOB        //port of PALE
-
-#define CC1000_PCLK_PIN    GPIO_Pin_5   //pin of PCLK
-#define CC1000_PCLK_PORT   GPIOB        //port of PCLK
-
 
 
 void cc1000_Init(void);
@@ -70,6 +57,11 @@ int8_t cc1000_GetData(int8_t *buffer, uint8_t buffSize);
 uint8_t cc1000_IsDataReceived(void);
 void cc1000_ClearRxFlag(void);
 
+uint16_t cc1000_GetSignalLevel(void);
+uint16_t cc1000_GetBattery(void);
+
+void cc1000_PowerAmp(uint8_t state);
+void cc1000_SetPower(uint8_t powerLevel);
 
 
 #endif
