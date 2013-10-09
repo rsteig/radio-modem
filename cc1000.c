@@ -298,88 +298,72 @@ void cc1000_InterruptFunction(void)
 {
     volatile int u;
 
-    if(g_mode == CC1000_MODE_TRANSMIT) //#################################################################
+    if(g_mode == CC1000_MODE_TX)
     {
-        //[CC1000_PREAMBLE_SIZE + CC1000_FRAME_SIZE]
-
-        if(cc1000_sendedData == CC1000_FALSE)   //nie wyslano wszystkich danych
-        {
-            //-------------------------------------
+        //check if there are still data to sent
+        if (g_frameSent != 1) {
             portio_Led(PORTIO_LED_RX, PORTIO_ON);
-            //-------------------------------------
 
-            if(cc1000_txData[txByte] & (1 << (7 - txBit)))  //jedynka - zmien stan
-            {
-                if(CC1000_DIO_STATE)    //jesli byl wysoki
-                    CC1000_DIO_LOW;     //ustaw niski
+            //if 1 then change state
+            if (g_txBuffer[g_txByte] & (1 << (7 - g_txBit))) {
+                if (CC1000_DIO_STATE)
+                    CC1000_DIO_LOW;
                 else
-                    CC1000_DIO_HI;      //jesli niski - ustaw wysoki
+                    CC1000_DIO_HI;
+            } else {
+                //if 0 we do not change pin state
+                //CC1000_DIO_LOW;
             }
-            else                                            //zero - nie zmieniaj stanu
-            {
-                //CC1000_DIO_LOW;       //dla zera stan zostaje bez zmian
-            }
 
-            txBit++;
+            ++g_txBit;
 
-            if(txBit > 7)
-            {
-                txBit = 0;
-                txByte++;
+            if (g_txBit > 7) {
+                g_txBit = 0;
+                ++g_txByte;
 
-                if(txByte >= CC1000_PREAMBLE_SIZE + CC1000_FRAME_SIZE)
-                {
-                    txBit = 0;
-                    txByte = 0;
-                    cc1000_sendedData = CC1000_TRUE;
+                if (g_txByte > TX_BUFF_SIZE - 1) {
+                    g_txBit = 0;
+                    g_txByte = 0;
+                    g_frameSent = 1;
 
-                    //-------------------------------------
                     portio_Led(PORTIO_LED_RX, PORTIO_OFF);
-                    //-------------------------------------
                 }
             }
-        }
-        else    //wyslano wszystkie
-        {
-            CC1000_DIO_LOW; //DIO w stanie LOW - i tak sie przelacza bo to Manchester
-
-            //nie moze tego byc bo sie wiesza dlatego ze jest kolizja przerwan
-            //cc1000_SwitchToReceive();
-            //cc1000_Sleep();
+        } else {    //all data sent
+            //DIO set to LOW (in fact it is changing because Manchester coding is set)
+            CC1000_DIO_LOW;
         }
     }
-    if(g_mode == CC1000_MODE_RECEIVE)  //#################################################################
+
+    if(g_mode == CC1000_MODE_RX)
     {
-        //[2 + CC1000_FRAME_SIZE]
+        //we assume that after shift there is 0 in lsb
 
-        if(cc1000_receivedData == CC1000_FALSE)
-        {
-            for(u = 0; u < 2 + CC1000_FRAME_SIZE - 1; u++)  //przesuwa wszystkie poza ostatnim w lewo
-            {
-                cc1000_rxData[u] = (cc1000_rxData[u] << 1);     //z prawej wskakuje zero
+        if (g_frameReceived != 1) {
+            //shift left all data in rxBuffer without the last one
+            for (u = 0; u < RX_BUFF_SIZE - 1; ++u) {
+                g_rxBuffer[u] = (g_rxBuffer[u] << 1);
 
-                if(cc1000_rxData[u + 1] & 0b10000000)           //jesli z kolejnego wskoczy 1
-                    cc1000_rxData[u] |= 0b00000001;             //to wstaw ja
+                //check for 1 on the msb of next byte
+                if (g_rxBuffer[u + 1] & 0b10000000)
+                    g_rxBuffer[u] |= 0b00000001;
             }
+            //shift last byte
+            g_rxBuffer[u] = (g_rxBuffer[u] << 1);
 
-            cc1000_rxData[u] = (cc1000_rxData[u] << 1);     //z prawej wskakuje zero
+            //WARNING: if LO bit is set in CC1000 data in receiver will be inverted
+            if(CC1000_DIO_STATE == g_lastDioState)       //if state not chenged decode as 0
+                g_rxBuffer[u] &= ~(0b00000001);
+            else                                    //if state changed decode as 1
+                g_rxBuffer[u] |= 0b00000001;
 
-            //!!! uwaga na bit LO ktory decyduje o inwersji danych w odbiorniku
-            if(CC1000_DIO_STATE == cc1000_lastDio)  //jesli stan sie nie zmienil wstaw 0
-                cc1000_rxData[u] &= ~(0b00000001);
-            else                                    //jesli stan sie zmienil wstaw 1
-                cc1000_rxData[u] |= 0b00000001;
+            g_lastDioState = CC1000_DIO_STATE;      //remember actual state of DIO
 
-            cc1000_lastDio = CC1000_DIO_STATE;      //zapamietanie stanu
+            //condition when stop receiving data
+            if ((g_rxBuffer[0] == g_rxBuffer[1]) == CC1000_START_BYTE) {
+                g_frameReceived = 1;
 
-            //tu warunek na zakonczenie odbierania danych - wykrycie preambuly i bajtu startu
-            if((cc1000_rxData[1] == (char)(CC1000_PREAMBLE_BYTE)) && (cc1000_rxData[2] == (char)(CC1000_START_BYTE)))
-            {
-                cc1000_receivedData = CC1000_TRUE;
-
-                //-------------------------------------
                 portio_Led(PORTIO_LED_TX, PORTIO_ON);
-                //-------------------------------------
             }
         }
     }
@@ -564,7 +548,7 @@ void cc1000_Init(void)
     // WriteRegister(CC1000_TEST2,    CC1000_TEST2_VAL);
     // WriteRegister(CC1000_TEST1,    CC1000_TEST1_VAL);
     // WriteRegister(CC1000_TEST0,    CC1000_TEST0_VAL);
- 
+
     Init_CalibrationVcoPll();
     Init_Sleep();
 }
@@ -655,12 +639,12 @@ int8_t cc1000_SendData(int8_t *data, uint8_t size)
     if (g_frameSent != 1)
         return -2;
 
-    //calculate crc 
+    //calculate crc
     crc16 = Crc16(data, size);
 
     //copy preamble
     for (i = 0 ; i < CC1000_PREAMBLE_SIZE; ++i)
-        g_txBuffer[i] = CC1000_PREAMBLE_BYTE; 
+        g_txBuffer[i] = CC1000_PREAMBLE_BYTE;
 
     //copy start bytes
     for (i = 0; i < CC1000_START_SIZE; ++i)
@@ -686,9 +670,9 @@ int8_t cc1000_SendData(int8_t *data, uint8_t size)
 
 int8_t cc1000_GetData(int8_t *buffer, uint8_t buffSize)
 {
-    //if buffer is smaller than received data then data excess will be lost 
+    //if buffer is smaller than received data then data excess will be lost
     uint8_t i;
- 
+
     //check if in right mode
     if (g_mode != CC1000_MODE_RX)
         return -1;
@@ -712,6 +696,10 @@ uint8_t cc1000_IsDataReceived(void)
 
 void cc1000_ClearRxFlag(void)
 {
+    if (g_mode != CC1000_MODE_RX)
+        return;
+
+    portio_Led(PORTIO_LED_TX, PORTIO_OFF);
     g_frameReceived = 0;
 }
 

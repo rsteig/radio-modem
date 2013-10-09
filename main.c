@@ -30,11 +30,11 @@ int main(void)
 
         portio_Led(PORTIO_LED_RX, PORTIO_ON);
         portio_Led(PORTIO_LED_TX, PORTIO_ON);
-        delay_MsBlockWait(1000, DELAY_TIMER0);
+        delay_MsBlockWait(1000, DELAY_TIMER_0);
 
         portio_Led(PORTIO_LED_RX, PORTIO_OFF);
         portio_Led(PORTIO_LED_TX, PORTIO_OFF);
-        delay_MsBlockWait(1000, DELAY_TIMER0);
+        delay_MsBlockWait(1000, DELAY_TIMER_0);
     }
 
     //chcking for input
