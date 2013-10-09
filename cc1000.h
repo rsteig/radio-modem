@@ -15,9 +15,11 @@
  */
 
 /*
- * TODO: move battery to separated module
+ * TODO: remove dependency from string.h in debug module
  * TODO: add LED support in right places
  * TODO: frame based on struct
+ * TODO: crc calculation in IRQ or in GetData ?
+ * TODO: all the time sending preamble and can send frame at any time
  * TODO: add posibility to select rf channel
  * TODO: fixed frame size
  */
@@ -37,12 +39,16 @@
 #define CC1000_PREAMBLE_SIZE	16
 
 #define CC1000_START_BYTE		0b00001111
-#define CC1000_START_SIZE       1
-#define CC1000_HEADER_SIZE      3   //how many bytes reserved for header
-#define CC1000_DATA_SIZE        10  //maximum data size
+#define CC1000_START_SIZE       2                       //start bytes
 
-#define CC1000_MAX_FRAME_SIZE   (CC1000_START_SIZE + CC1000_HEADER_SIZE + CC1000_DATA_SIZE)
+#define CC1000_CRC_SIZE         2                       //bytes for CRC from data part
 
+#define CC1000_HEADER_SIZE      (CC1000_START_SIZE + CC1000_CRC_SIZE)
+#define CC1000_DATA_SIZE        10
+
+//frame format based on above settings:
+// |---PREAMBLE---|----------------HEADER---------------------|----DATA----|
+// [..............(start_byte)(start_byte)(crc16_hi)(crc16_lo)(data...) ...]
 
 
 void cc1000_Init(void);
@@ -58,10 +64,11 @@ uint8_t cc1000_IsDataReceived(void);
 void cc1000_ClearRxFlag(void);
 
 uint16_t cc1000_GetSignalLevel(void);
-uint16_t cc1000_GetBattery(void);
+uint16_t cc1000_GetBattLevel(void);
 
 void cc1000_PowerAmp(uint8_t state);
 void cc1000_SetPower(uint8_t powerLevel);
+
 
 
 #endif

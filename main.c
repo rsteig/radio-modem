@@ -13,6 +13,7 @@
 #include "debug.h"
 #include "portio.h"
 #include "delay.h"
+#include "cc1000.h"
 
 
 
@@ -27,11 +28,13 @@ int main(void)
     for (i = 0; i < 10; ++i) {
         debug_Print("Blink...");
 
-        portio_Led(PORTIO_LED_R, PORTIO_ON);
-        delay_MsBlockWait(1000, DEALY_TIMER0);
+        portio_Led(PORTIO_LED_RX, PORTIO_ON);
+        portio_Led(PORTIO_LED_TX, PORTIO_ON);
+        delay_MsBlockWait(1000, DELAY_TIMER0);
 
-        portio_Led(PORTIO_LED_R, PORTIO_OFF);
-        delay_MsBlockWait(1000, DEALY_TIMER0);
+        portio_Led(PORTIO_LED_RX, PORTIO_OFF);
+        portio_Led(PORTIO_LED_TX, PORTIO_OFF);
+        delay_MsBlockWait(1000, DELAY_TIMER0);
     }
 
     //chcking for input
@@ -80,5 +83,6 @@ void main_Init(void)
     debug_Init();
     portio_Init();
     delay_Init();
+    cc1000_Init();
 }
 
