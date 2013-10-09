@@ -14,16 +14,6 @@
  * [ ...010101010101... | 00001111 | header | header | header | data........ ]
  */
 
-/*
- * TODO: remove dependency from string.h in debug module
- * TODO: add LED support in right places
- * TODO: frame based on struct
- * TODO: crc calculation in IRQ or in GetData ?
- * TODO: all the time sending preamble and can send frame at any time
- * TODO: add posibility to select rf channel
- * TODO: fixed frame size
- */
-
 #ifndef __H_CC1000_H__
 #define __H_CC1000_H__
 
@@ -57,7 +47,7 @@ void cc1000_SetModeTx(void);
 void cc1000_SetModeRx(void);
 uint8_t cc1000_GetMode(void);
 
-int8_t cc1000_SendData(int8_t *data, uint8_t size);
+int8_t cc1000_SendData(const int8_t *data, uint8_t size);
 int8_t cc1000_GetData(int8_t *buffer, uint8_t buffSize);
 
 uint8_t cc1000_IsDataReceived(void);

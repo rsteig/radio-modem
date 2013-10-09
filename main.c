@@ -15,7 +15,28 @@
 #include "delay.h"
 #include "cc1000.h"
 
+void TxTest(void)
+{
+    cc1000_SetModeTx();
 
+    while (1) {
+        cc1000_SendData((int8_t *)("DUPA"), 4);
+        delay_MsBlockWait(500, DELAY_TIMER_MAIN);
+    }
+}
+
+void RxTest(void)
+{
+    cc1000_SetModeRx();
+
+    while (1) {
+        if (cc1000_IsDataReceived()) {
+            delay_MsBlockWait(100, DELAY_TIMER_MAIN);
+            cc1000_ClearRxFlag();
+        }
+    }
+
+}
 
 void main_Init();
 
@@ -25,17 +46,20 @@ int main(void)
 
     main_Init();    //init everything
 
-    for (i = 0; i < 10; ++i) {
+    for (i = 0; i < 3; ++i) {
         debug_Print("Blink...");
 
         portio_Led(PORTIO_LED_RX, PORTIO_ON);
         portio_Led(PORTIO_LED_TX, PORTIO_ON);
-        delay_MsBlockWait(1000, DELAY_TIMER_0);
+        delay_MsBlockWait(1000, DELAY_TIMER_MAIN);
 
         portio_Led(PORTIO_LED_RX, PORTIO_OFF);
         portio_Led(PORTIO_LED_TX, PORTIO_OFF);
-        delay_MsBlockWait(1000, DELAY_TIMER_0);
+        delay_MsBlockWait(1000, DELAY_TIMER_MAIN);
     }
+
+    //TxTest();
+    RxTest();
 
     //chcking for input
     while(1) {

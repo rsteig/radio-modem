@@ -271,7 +271,7 @@ uint8_t ReadRegister(uint8_t adress)
     return val;
 }
 
-uint16_t Crc16(int8_t *data, uint8_t size)
+uint16_t Crc16(const int8_t *data, uint8_t size)
 {
     const uint16_t CC1000_POLYNOMIAL16  = 0x8005;
     const uint16_t CC1000_CRC16TOPBIT = 1 << 15;
@@ -626,7 +626,7 @@ uint8_t cc1000_GetMode(void)
     return g_mode;
 }
 
-int8_t cc1000_SendData(int8_t *data, uint8_t size)
+int8_t cc1000_SendData(const int8_t *data, uint8_t size)
 {
     //if size > CC1000_MAX_DATA_SIZE then data will be cuted
     uint8_t i;

@@ -7,10 +7,11 @@
 
 
 
-#define DELAY_MAX_TIMERS 5
+#define DELAY_MAX_TIMERS    5
 
-#define DELAY_TIMER_0            0
-#define DELAY_TIMER_CC1000      1
+//timers names
+#define DELAY_TIMER_MAIN    0
+#define DELAY_TIMER_CC1000  1
 
 
 
