@@ -53,15 +53,6 @@
 #define CC1000_FREQ_0B_VAL_MANCH    0x19
 #define CC1000_FSEP1_VAL_MANCH      0x02
 #define CC1000_FSEP0_VAL_MANCH      0xC7
-//settings for APRS
-#define CC1000_FREQ_2A_VAL_APRS     0x49
-#define CC1000_FREQ_1A_VAL_APRS     0xAB
-#define CC1000_FREQ_0A_VAL_APRS     0xFE
-#define CC1000_FREQ_2B_VAL_APRS     0x49
-#define CC1000_FREQ_1B_VAL_APRS     0xAB
-#define CC1000_FREQ_0B_VAL_APRS     0xFE
-#define CC1000_FSEP1_VAL_APRS       0x00
-#define CC1000_FSEP0_VAL_APRS       0x4E
 //-------------------------------------------------------------
 #define CC1000_CURRENT_VAL_TX       0b10000001
 #define CC1000_CURRENT_VAL_RX       0b01000100
