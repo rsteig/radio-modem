@@ -35,6 +35,7 @@
 
 #define CC1000_HEADER_SIZE      (CC1000_START_SIZE + CC1000_CRC_SIZE)
 #define CC1000_DATA_SIZE        10
+#define CC1000_FRAME_SIZE       (CC1000_HEADER_SIZE + CC1000_DATA_SIZE)
 
 //frame format based on above settings:
 // |---PREAMBLE---|----------------HEADER---------------------|----DATA----|

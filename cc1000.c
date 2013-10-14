@@ -125,8 +125,8 @@
 
 
 //data buffers
-#define RX_BUFF_SIZE (CC1000_HEADER_SIZE + CC1000_DATA_SIZE)
-#define TX_BUFF_SIZE (CC1000_PREAMBLE_SIZE + CC1000_HEADER_SIZE + CC1000_DATA_SIZE)
+#define RX_BUFF_SIZE (CC1000_FRAME_SIZE)
+#define TX_BUFF_SIZE (CC1000_PREAMBLE_SIZE + CC1000_FRAME_SIZE)
 
 
 //modem working mode
@@ -143,6 +143,7 @@ volatile uint8_t g_frameSent = 0;
 volatile uint8_t g_txBit = 0;
 volatile uint8_t g_txByte = 0;
 volatile uint8_t g_txIndex = 0;
+
 volatile uint8_t g_rxIndex = 0;
 volatile uint8_t g_lastDioState = 0;
 
@@ -157,7 +158,7 @@ void MsWait(uint16_t delay)
 void UsWait(uint16_t delay)
 {
     //this function is only used during init and mode switching
-    if (delay > 1)
+    if (delay > 0)
         delay_MsBlockWait(1, DELAY_TIMER_CC1000);
 }
 
@@ -170,11 +171,11 @@ void SendBit(uint8_t bite)
     else
         CC1000_PDATA_LOW;
 
-    //UsWait(1);    //1us
+    UsWait(1);    //1us
     CC1000_PCLK_LOW;
-    //UsWait(1);    //1us
+    UsWait(1);    //1us
     CC1000_PCLK_HI;
-    //UsWait(1);    //1us
+    UsWait(1);    //1us
 }
 
 uint8_t RecvBit(void)
@@ -184,11 +185,11 @@ uint8_t RecvBit(void)
     uint8_t bite;
 
     CC1000_PCLK_LOW;
-    //UsWait(1);    //1us
+    UsWait(1);    //1us
     bite = GPIO_ReadInputDataBit(CC1000_PDATA_PORT,CC1000_PDATA_PIN);
-    //UsWait(1);    //1us
+    UsWait(1);    //1us
     CC1000_PCLK_HI;
-    //UsWait(1);    //1us
+    UsWait(1);    //1us
 
     return bite;
 }
@@ -200,7 +201,7 @@ void WriteRegister(uint8_t adress, uint8_t val)
     int8_t b;
     //----------------------------------------------------
     CC1000_PALE_LOW;
-    //UsWait(1);    //1us
+    UsWait(1);    //1us
     //send adress
     for (b = 6; b >= 0; --b)
         SendBit(adress & (1 << b));
@@ -208,7 +209,7 @@ void WriteRegister(uint8_t adress, uint8_t val)
     //----------------------------------------------------
     SendBit(1);
     CC1000_PALE_HI;
-    //UsWait(1);    //1us
+    UsWait(1);    //1us
     //send value
     for (b = 7; b >= 0; --b)
         SendBit(val & (1 << b));
@@ -224,7 +225,7 @@ uint8_t ReadRegister(uint8_t adress)
     int8_t b;
     //----------------------------------------------------
     CC1000_PALE_LOW;
-    //UsWait(1);    //1us
+    UsWait(1);    //1us
     //send adress
     for (b = 6; b >= 0; --b)
         SendBit(adress & (1 << b));
@@ -240,10 +241,10 @@ uint8_t ReadRegister(uint8_t adress)
 
     GPIO_Init(GPIOB,&GPIO_InitStructure);
 
-    //UsWait(1);    //1us
+    UsWait(1);    //1us
 
     CC1000_PALE_HI;
-    //UsWait(1);    //1us
+    UsWait(1);    //1us
     //read value
     for (b = 7; b >= 0; --b)
         if (RecvBit())
@@ -257,7 +258,7 @@ uint8_t ReadRegister(uint8_t adress)
 
     GPIO_Init(GPIOB,&GPIO_InitStructure);
 
-    //UsWait(1);    //1us
+    UsWait(1);    //1us
 
     return val;
 }
@@ -289,8 +290,7 @@ void cc1000_InterruptFunction(void)
 {
     volatile int u;
 
-    if(g_mode == CC1000_MODE_TX)
-    {
+    if (g_mode == CC1000_MODE_TX) {
         //check if there are still data to sent
         if (g_frameSent != 1) {
             portio_Led(PORTIO_LED_RX, PORTIO_ON);
@@ -326,8 +326,7 @@ void cc1000_InterruptFunction(void)
         }
     }
 
-    if(g_mode == CC1000_MODE_RX)
-    {
+    if (g_mode == CC1000_MODE_RX) {
         //we assume that after shift there is 0 in lsb
 
         if (g_frameReceived != 1) {
@@ -630,9 +629,6 @@ int8_t cc1000_SendData(const int8_t *data, uint8_t size)
     if (g_frameSent != 1)
         return -2;
 
-    //calculate crc
-    crc16 = Crc16(data, size);
-
     //copy preamble
     for (i = 0 ; i < CC1000_PREAMBLE_SIZE; ++i)
         g_txBuffer[i] = CC1000_PREAMBLE_BYTE;
@@ -640,6 +636,9 @@ int8_t cc1000_SendData(const int8_t *data, uint8_t size)
     //copy start bytes
     for (i = 0; i < CC1000_START_SIZE; ++i)
         g_txBuffer[CC1000_PREAMBLE_SIZE + i] = CC1000_START_BYTE;
+
+    //calculate crc
+    crc16 = Crc16(data, size);
 
     //copy crc
     g_txBuffer[CC1000_PREAMBLE_SIZE + CC1000_START_SIZE] = (crc16 >> 8);
