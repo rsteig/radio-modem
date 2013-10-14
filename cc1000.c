@@ -288,7 +288,7 @@ uint16_t Crc16(const int8_t *data, uint8_t size)
 
 void cc1000_InterruptFunction(void)
 {
-    volatile int u;
+    volatile uint8_t u;
 
     if (g_mode == CC1000_MODE_TX) {
         //check if there are still data to sent
@@ -629,10 +629,12 @@ int8_t cc1000_SendData(const int8_t *data, uint8_t size)
     if (g_frameSent != 1)
         return -2;
 
+    //-------------------------------------------------[PREAMBLE]
     //copy preamble
     for (i = 0 ; i < CC1000_PREAMBLE_SIZE; ++i)
         g_txBuffer[i] = CC1000_PREAMBLE_BYTE;
 
+    //-------------------------------------------------[HEADER]
     //copy start bytes
     for (i = 0; i < CC1000_START_SIZE; ++i)
         g_txBuffer[CC1000_PREAMBLE_SIZE + i] = CC1000_START_BYTE;
@@ -644,6 +646,7 @@ int8_t cc1000_SendData(const int8_t *data, uint8_t size)
     g_txBuffer[CC1000_PREAMBLE_SIZE + CC1000_START_SIZE] = (crc16 >> 8);
     g_txBuffer[CC1000_PREAMBLE_SIZE + CC1000_START_SIZE + 1] = 0x00FF & crc16;
 
+    //-------------------------------------------------[DATA]
     //copy data
     for (i = 0; i < CC1000_DATA_SIZE; ++i) {
         if (i < size)
@@ -651,6 +654,10 @@ int8_t cc1000_SendData(const int8_t *data, uint8_t size)
         else
             g_txBuffer[CC1000_PREAMBLE_SIZE + CC1000_HEADER_SIZE + i] = 0;
     }
+
+    //prepare env to send
+    g_txByte = 0;
+    g_txBit = 0;
 
     //let know transmitter that it can start sending data
     g_frameSent = 0;
@@ -673,6 +680,7 @@ int8_t cc1000_GetData(int8_t *buffer, uint8_t buffSize)
     for (i = 0; i < buffSize; ++i)
         buffer[i] = g_rxBuffer[CC1000_HEADER_SIZE + i];
 
+    g_rxIndex = 0;
     //g_frameReceived = 0;
     //user decide when enable receiving by calling cc1000_ClearRxFlag()
 
