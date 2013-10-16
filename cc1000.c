@@ -332,8 +332,8 @@ void cc1000_InterruptFunction(void)
         if (g_frameReceived != 1) {
             //shift left all data in rxBuffer without the last one
             for (u = 0; u < RX_BUFF_SIZE - 1; ++u) {
+                //shift buffer left
                 g_rxBuffer[u] = (g_rxBuffer[u] << 1);
-
                 //check for 1 on the msb of next byte
                 if (g_rxBuffer[u + 1] & 0b10000000)
                     g_rxBuffer[u] |= 0b00000001;
@@ -350,7 +350,7 @@ void cc1000_InterruptFunction(void)
             g_lastDioState = CC1000_DIO_STATE;      //remember actual state of DIO
 
             //condition when stop receiving data
-            if ((g_rxBuffer[0] == g_rxBuffer[1]) == CC1000_START_BYTE) {
+            if (g_rxBuffer[0] == g_rxBuffer[1]) {
                 g_frameReceived = 1;
 
                 portio_Led(PORTIO_LED_TX, PORTIO_ON);
