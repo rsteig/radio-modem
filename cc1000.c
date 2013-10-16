@@ -733,66 +733,68 @@ void cc1000_PowerAmp(uint8_t state)
 {
     uint8_t mainReg = 0;
 
-    if (g_mode == CC1000_MODE_TX) {
-        mainReg = ReadRegister(CC1000_MAIN); //odczytanie rejestru MAIN
+    if (g_mode != CC1000_MODE_TX)
+        return;
 
-        if(state)   //enable
-            mainReg &= ~(1 << 4);    //setting to L, enabling
-        else        //disable
-            mainReg |= (1 << 4);    //setting to H, disabling
+    mainReg = ReadRegister(CC1000_MAIN);    //read MAIN register
 
-        WriteRegister(CC1000_MAIN, mainReg);    //zapisanie rejestu main
-    }
+    if(state)   //enable
+        mainReg &= ~(1 << 4);               //setting to L, enabling
+    else        //disable
+        mainReg |= (1 << 4);                //setting to H, disabling
+
+    WriteRegister(CC1000_MAIN, mainReg);    //write modified MAIN register
 }
 
 void cc1000_SetPower(uint8_t powerLevel)
 {
     char reg = 0;
 
-    if (g_mode == CC1000_MODE_TX) {
-        if (powerLevel > 10)
-            powerLevel = 10;
+    if (g_mode != CC1000_MODE_TX)
+        return;
 
-        switch (powerLevel) {
-        case 0:
-            reg = 0x0F;
-            break;
-        case 1:
-            reg = 0x40;
-            break;
-        case 2:
-            reg = 0x50;
-            break;
-        case 3:
-            reg = 0x50;
-            break;
-        case 4:
-            reg = 0x60;
-            break;
-        case 5:
-            reg = 0x70;
-            break;
-        case 6:
-            reg = 0x80;
-            break;
-        case 7:
-            reg = 0x90;
-            break;
-        case 8:
-            reg = 0xC0;
-            break;
-        case 9:
-            reg = 0xE0;
-            break;
-        case 10:
-            reg = 0xFF;
-            break;
-        default:
-            break;
-        }
+    if (powerLevel > 10)
+        powerLevel = 10;
 
-        WriteRegister(CC1000_PA_POW, reg);
+    switch (powerLevel) {
+    case 0:
+        reg = 0x0F;
+        break;
+    case 1:
+        reg = 0x40;
+        break;
+    case 2:
+        reg = 0x50;
+        break;
+    case 3:
+        reg = 0x50;
+        break;
+    case 4:
+        reg = 0x60;
+        break;
+    case 5:
+        reg = 0x70;
+        break;
+    case 6:
+        reg = 0x80;
+        break;
+    case 7:
+        reg = 0x90;
+        break;
+    case 8:
+        reg = 0xC0;
+        break;
+    case 9:
+        reg = 0xE0;
+        break;
+    case 10:
+        reg = 0xFF;
+        break;
+    default:
+        break;
     }
+
+    WriteRegister(CC1000_PA_POW, reg);
 }
 
 
