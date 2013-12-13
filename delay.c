@@ -4,7 +4,7 @@
 
 
 
-volatile uint32_t delay_timer[DELAY_MAXTIMERS];
+volatile uint32_t delay_timer[DELAY_MAX_TIMERS];
 uint8_t test;
 
 
@@ -18,7 +18,7 @@ void delay_Init(void)
     NVIC_InitTypeDef NVIC_InitStructure;
    
     //clearing timers
-    for (i = 0; i < DELAY_MAXTIMERS; i++)
+    for (i = 0; i < DELAY_MAX_TIMERS; i++)
         delay_timer[i] = 0;
    
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
@@ -78,7 +78,7 @@ void TIM1_CC_IRQHandler(void)
     uint8_t i = 0;
 
     if (TIM_GetITStatus(TIM1,TIM_IT_CC1) == SET) {
-        for (i = 0; i < DELAY_MAXTIMERS; ++i) {
+        for (i = 0; i < DELAY_MAX_TIMERS; ++i) {
             ++delay_timer[i];
     
             if(delay_timer[i] > 0xfffffffa)

@@ -1,0 +1,10 @@
+- przejrzec jeszcze raz note CC1000 i sprawdzic opoznienia, kodowanie (Manchester) oraz bit LO
+
+- wybrac miejsce w ktorym bedzie liczenie CRC i sprawdzanie ramki
+- wydzielic modol baterii
+
+- wysylac preambule poza ramka
+- przy odbieraniu nie przesuwac rejestrow tylko wstawiac bity w odpowiednie miejsce
+
+- wysylanie duzych ilosci danych z podzialem na male ramki
+- mozliwosc wybierania czestotliwosc nadawczej i odbiorczej podczas ustawiania trybu pracy

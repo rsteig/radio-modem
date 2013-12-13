@@ -13,8 +13,52 @@
 #include "debug.h"
 #include "portio.h"
 #include "delay.h"
+#include "cc1000.h"
 
+void TxTest(void)
+{
+    cc1000_SetModeTx();
 
+    while (1) {
+        cc1000_SendData((int8_t *)("AABC"), 4);
+        delay_MsBlockWait(1000, DELAY_TIMER_MAIN);
+    }
+}
+
+void PrintByte(int8_t data)
+{
+    uint8_t print[9];
+    int8_t i, k;
+
+    for (i = 7, k = 0; i > -1; --i, ++k)
+        if (data & (1 << i))
+            print[k] = '1';
+        else
+            print[k] = '0';
+
+    print[8] = 0;
+
+    debug_Print((char *)print);
+}
+
+void RxTest(void)
+{
+    int8_t buffer[10];
+    uint8_t i;
+
+    cc1000_SetModeRx();
+
+    while (1) {
+        if (cc1000_IsDataReceived()) {
+            cc1000_GetData(buffer, 10);
+            for (i = 0; i < 10; i++)
+                PrintByte(buffer[i]);
+
+            cc1000_ClearRxFlag();
+        }
+    }
+
+}
 
 void main_Init();
 
@@ -24,15 +68,20 @@ int main(void)
 
     main_Init();    //init everything
 
-    for (i = 0; i < 10; ++i) {
+    for (i = 0; i < 3; ++i) {
         debug_Print("Blink...");
 
-        portio_Led(PORTIO_LED_R, PORTIO_ON);
-        delay_MsBlockWait(1000, DEALY_TIMER0);
+        portio_Led(PORTIO_LED_RX, PORTIO_ON);
+        portio_Led(PORTIO_LED_TX, PORTIO_ON);
+        delay_MsBlockWait(1000, DELAY_TIMER_MAIN);
 
-        portio_Led(PORTIO_LED_R, PORTIO_OFF);
-        delay_MsBlockWait(1000, DEALY_TIMER0);
+        portio_Led(PORTIO_LED_RX, PORTIO_OFF);
+        portio_Led(PORTIO_LED_TX, PORTIO_OFF);
+        delay_MsBlockWait(1000, DELAY_TIMER_MAIN);
     }
+
+    //TxTest();
+    RxTest();
 
     //chcking for input
     while(1) {
@@ -80,5 +129,6 @@ void main_Init(void)
     debug_Init();
     portio_Init();
     delay_Init();
+    cc1000_Init();
 }
 

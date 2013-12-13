@@ -10,7 +10,7 @@ void portio_Init(void)
     //init for diodes
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
-    GPIO_InitStructure.GPIO_Pin = PORTIO_LED_R | PORTIO_LED_G;
+    GPIO_InitStructure.GPIO_Pin = PORTIO_LED_TX | PORTIO_LED_RX;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
 

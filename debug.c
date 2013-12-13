@@ -1,7 +1,6 @@
 #include "stm32f10x.h"
 #include "stm32f10x_conf.h"
 #include "debug.h"
-#include <string.h>
 
 
 #define TX_BUFF_SIZE    100
@@ -18,6 +17,20 @@ volatile uint8_t g_receivedMessage = 0;
 
 
 
+uint8_t IsStringMatch(volatile const uint8_t *s1, const char *s2)
+{
+    uint8_t len = 0;
+    uint8_t i;
+
+    while (s2[len] > 31)
+        ++len;
+    
+    for (i = 0; i < len; ++i)
+        if (s1[i] != (uint8_t)s2[i])
+            return 0;
+
+    return 1;
+}
 void debug_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
@@ -84,9 +97,9 @@ void debug_Print(const char *msg)
 void debug_ParseIncoming(void)
 {
     if (g_receivedMessage) {
-        if (!strcmp((char *)g_rxBuffer, "hello")) {
+        if (IsStringMatch(g_rxBuffer, "hello")) {
            debug_Print("Hello:)");
-        } else if (!strcmp((char *)g_rxBuffer, ":P")) {
+        } else if (IsStringMatch(g_rxBuffer, ":P")) {
            debug_Print(":D");
         } else {
             debug_Print(":(");

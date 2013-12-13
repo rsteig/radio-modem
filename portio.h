@@ -11,8 +11,8 @@
 #define PORTIO_OFF      0
 #define PORTIO_ON       1
 
-#define PORTIO_LED_R GPIO_Pin_8
-#define PORTIO_LED_G GPIO_Pin_9
+#define PORTIO_LED_TX GPIO_Pin_8
+#define PORTIO_LED_RX GPIO_Pin_9
 
 
 
