@@ -39,6 +39,7 @@ void PrintByte(int8_t data)
     print[8] = 0;
 
     debug_Print((char *)print);
+    debug_Print("--------------");
 }
 
 void RxTest(void)
@@ -80,8 +81,8 @@ int main(void)
         delay_MsBlockWait(1000, DELAY_TIMER_MAIN);
     }
 
-    //TxTest();
-    RxTest();
+    TxTest();
+    //RxTest();
 
     //chcking for input
     while(1) {

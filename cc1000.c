@@ -350,7 +350,7 @@ void cc1000_InterruptFunction(void)
             g_lastDioState = CC1000_DIO_STATE;      //remember actual state of DIO
 
             //condition when stop receiving data
-            if (g_rxBuffer[0] == g_rxBuffer[1]) {
+            if (g_rxBuffer[0] == g_rxBuffer[1] == CC1000_START_BYTE) {
                 g_frameReceived = 1;
 
                 portio_Led(PORTIO_LED_TX, PORTIO_ON);
@@ -648,6 +648,7 @@ int8_t cc1000_SendData(const int8_t *data, uint8_t size)
 
     //-------------------------------------------------[DATA]
     //copy data
+    //if dataLen < maxData fill it with 0
     for (i = 0; i < CC1000_DATA_SIZE; ++i) {
         if (i < size)
             g_txBuffer[CC1000_PREAMBLE_SIZE + CC1000_HEADER_SIZE + i] = data[i];
@@ -694,8 +695,13 @@ uint8_t cc1000_IsDataReceived(void)
 
 void cc1000_ClearRxFlag(void)
 {
+    uint8_t i;
     if (g_mode != CC1000_MODE_RX)
         return;
+
+    //clearing rx buffer
+    for (i = 0; i < RX_BUFF_SIZE; ++i)
+        g_rxBuffer[i] = 0;
 
     portio_Led(PORTIO_LED_TX, PORTIO_OFF);
     g_frameReceived = 0;
